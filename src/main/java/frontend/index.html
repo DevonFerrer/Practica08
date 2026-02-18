@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>PowerFit - Gestión de Socios</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; background-color: #f4f4f4; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #007bff; color: white; }
+        .form-group { margin-bottom: 15px; }
+        input { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { background: #28a745; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 4px; }
+        button:hover { background: #218838; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PowerFit API - Panel de Control</h1>
+        
+        <h3>Registrar Nuevo Socio</h3>
+        <div class="form-group">
+            <input type="text" id="nombre" placeholder="Nombre Completo">
+        </div>
+        <div class="form-group">
+            <input type="text" id="dni" placeholder="DNI">
+        </div>
+        <div class="form-group">
+            <input type="number" id="idPlan" placeholder="ID del Plan (ej: 1)">
+        </div>
+        <button onclick="registrarSocio()">Guardar Socio</button>
+
+        <hr>
+
+        <h3>Lista de Socios</h3>
+        <button onclick="cargarSocios()" style="background:#007bff">Actualizar Lista</button>
+        <table id="tablaSocios">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>DNI</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:8080/api/socios";
+
+        // Función para obtener socios del servidor
+        async function cargarSocios() {
+            try {
+                const response = await fetch(API_URL);
+                const result = await response.json();
+                const tabla = document.querySelector("#tablaSocios tbody");
+                tabla.innerHTML = "";
+
+                if (result.success) {
+                    result.data.forEach(socio => {
+                        tabla.innerHTML += `
+                            <tr>
+                                <td>${socio.idSocio}</td>
+                                <td>${socio.nombreCompleto}</td>
+                                <td>${socio.dni}</td>
+                                <td>${socio.estado}</td>
+                            </tr>
+                        `;
+                    });
+                }
+            } catch (error) {
+                alert("Error al conectar con el servidor. ¿Está encendido?");
+            }
+        }
+
+        // Función para enviar un nuevo socio (POST)
+        async function registrarSocio() {
+            const datos = {
+                nombreCompleto: document.getElementById("nombre").value,
+                dni: document.getElementById("dni").value,
+                idPlan: document.getElementById("idPlan").value,
+                fechaVencimiento: "2026-12-31" // Fecha de ejemplo
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datos)
+                });
+                
+                const res = await response.json();
+                if (res.success) {
+                    alert("Socio registrado con éxito");
+                    cargarSocios();
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        }
+
+        // Cargar lista al iniciar
+        cargarSocios();
+    </script>
+</body>
+</html>
